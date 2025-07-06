@@ -15,18 +15,65 @@
     <h1>URL Shortener Microservice</h1>
     <main>
       <section>
-        <form action="api/shorturl" method="POST">
+        <form action="api/shorturl" method="POST" id="urlForm">
           <fieldset>
             <legend>URL Shortener</legend>
             <label for="url_input">URL:</label>
-            <input id="url_input" type="text" name="url" placeholder="https://www.freecodecamp.org/" />
+            <input id="url_input" type="text" name="url" placeholder="https://www.freecodecamp.org/" required />
             <input type="submit" value="POST URL" />
           </fieldset>
         </form>
+      </section>
+      
+      <section id="result" style="display: none;">
+        <h3>Result:</h3>
+        <div id="resultContent"></div>
+      </section>
+      
+      <section>
+        <h3>Example Usage:</h3>
+        <p><code>POST [project_url]/api/shorturl</code> - <code>https://www.google.com</code></p>
+        <p><code>GET [project_url]/api/shorturl/3</code> - Will redirect to the original URL</p>
       </section>
     </main>
     <footer>
       <p>By <a href="https://www.freecodecamp.org/">freeCodeCamp</a></p>
     </footer>
+    
+    <script>
+      document.getElementById('urlForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const url = document.getElementById('url_input').value;
+        const resultSection = document.getElementById('result');
+        const resultContent = document.getElementById('resultContent');
+        
+        try {
+          const response = await fetch('/api/shorturl', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ url: url })
+          });
+          
+          const data = await response.json();
+          
+          if (data.error) {
+            resultContent.innerHTML = `<p style="color: red;">Error: ${data.error}</p>`;
+          } else {
+            resultContent.innerHTML = `
+              <p><strong>Original URL:</strong> ${data.original_url}</p>
+              <p><strong>Short URL:</strong> <a href="/api/shorturl/${data.short_url}" target="_blank">${window.location.origin}/api/shorturl/${data.short_url}</a></p>
+            `;
+          }
+          
+          resultSection.style.display = 'block';
+        } catch (error) {
+          resultContent.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+          resultSection.style.display = 'block';
+        }
+      });
+    </script>
   </body>
 </html>
